@@ -29,7 +29,7 @@
 #define LED_PIN6					DIO_u8PIN6
 #define LED_PIN7					DIO_u8PIN7
 
-typedef struct My_Struct1
+typedef struct
 {
 	u8 LED_u8Port;
 	u8 LED_u8Pin;
