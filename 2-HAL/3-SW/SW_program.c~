@@ -36,6 +36,6 @@ u8 SW_u8ReadSwicth(SW_t* Copy_pu8Struct)
 		DIO_u8GetPinValue(Copy_pu8Struct->SW_u8Port, Copy_pu8Struct->SW_u8Pin, &Local_u8Value);
 		Local_u8SwicthValue = Local_u8Value;
 	}
-	delay_ms(Copy_pu8Struct->SW_u8DebounceTime);
+	_delay_ms(Copy_pu8Struct->SW_u8DebounceTime);
 	return Local_u8SwicthValue;
 }

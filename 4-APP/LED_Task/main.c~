@@ -17,7 +17,7 @@
 #include "..\..\2-HAL\3-SW\SW_program.c"
 
 #define DEBOUNCE_TIME       20
-#define DELAY_TIME          1000
+#define DELAY_TIME          100
 #define F_CPU 8000000UL
 
 LED_t Red = {LED_PORTA, LED_PIN0, LED_u8ACTIVE_HIGH};
