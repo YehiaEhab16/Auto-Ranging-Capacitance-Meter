@@ -8,10 +8,10 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\STD_TYPES.h"
 
-#include "..\1-MCAL\1-DIO\DIO_interface.h"
-#include <util/delay.h>
+#include "..\..\1-MCAL\1-DIO\DIO_interface.h"
+#include <delay.h>
 
 #include "SW_config.h"
 #include "SW_interface.h"
@@ -36,6 +36,6 @@ u8 SW_u8ReadSwicth(SW_t* Copy_pu8Struct)
 		DIO_u8GetPinValue(Copy_pu8Struct->SW_u8Port, Copy_pu8Struct->SW_u8Pin, &Local_u8Value);
 		Local_u8SwicthValue = Local_u8Value;
 	}
-	_delay_ms(Copy_pu8Struct->SW_u8DebounceTime);
+	delay_ms(Copy_pu8Struct->SW_u8DebounceTime);
 	return Local_u8SwicthValue;
 }

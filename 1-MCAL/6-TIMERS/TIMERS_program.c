@@ -8,8 +8,8 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
-#include "..\5-LIB\BIT_MATH.h"
+#include "..\..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\BIT_MATH.h"
 
 #include "TIMERS_interface.h"
 #include "TIMERS_register.h"

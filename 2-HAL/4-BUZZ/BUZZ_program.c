@@ -8,11 +8,11 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\STD_TYPES.h"
 
 #include <util/delay.h>
 
-#include "..\1-MCAL\1-DIO\DIO_interface.h"
+#include "..\..\1-MCAL\1-DIO\DIO_interface.h"
 
 #include "BUZZ_config.h"
 #include "BUZZ_interface.h"
