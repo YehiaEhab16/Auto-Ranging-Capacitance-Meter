@@ -5,6 +5,7 @@
 /*******************************************************/
 /*******************************************************/
 
+<<<<<<< HEAD
 #include "STD_TYPES.h"
 #include "BIT_MATH.h"
 #include "PORT_interface.h"
@@ -28,6 +29,9 @@ u8 Copy_CAP8RangeLow;
 u8 Copy_CAP8RangeMedium;
 u8 Copy_CAP8RangeHigh;
 
+=======
+#include "..\..\5-LIB\STD_TYPES.h"
+>>>>>>> refs/remotes/origin/main
 
 void main(void)
 {

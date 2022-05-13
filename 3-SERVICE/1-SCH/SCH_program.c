@@ -8,9 +8,9 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\STD_TYPES.h"
 
-#include "..\1-MCAL\6-TIMERS\TIMERS_interface.h"
+#include "..\..\1-MCAL\6-TIMERS\TIMERS_interface.h"
 
 #include "SCH_interface.h"
 

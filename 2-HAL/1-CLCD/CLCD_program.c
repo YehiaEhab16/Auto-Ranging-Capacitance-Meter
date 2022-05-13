@@ -8,11 +8,11 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
-#include "..\5-LIB\BIT_MATH.h"
+#include "..\..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\BIT_MATH.h"
 #include <util/delay.h>
 
-#include "..\1-MCAL\1-DIO\DIO_interface.h"
+#include "..\..\1-MCAL\1-DIO\DIO_interface.h"
 
 #include "CLCD_config.h"
 #include "CLCD_interface.h"

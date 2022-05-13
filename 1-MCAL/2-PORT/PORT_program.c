@@ -8,8 +8,8 @@
 /*******************************************************/
 /*******************************************************/
 
-#include "..\5-LIB\STD_TYPES.h"
-#include "..\5-LIB\BIT_MATH.h"
+#include "..\..\5-LIB\STD_TYPES.h"
+#include "..\..\5-LIB\BIT_MATH.h"
 
 #include "PORT_config.h"
 #include "PORT_private.h"
