@@ -6,9 +6,9 @@
 
 enum Range
 {
-	RES_220 ,
-	RES_1K,
-	RES_10K
+	RES_10,
+	RES_10K,
+	RES_10M
 
 
 };
@@ -22,17 +22,23 @@ enum Unit
 
 };
 
+#define CAP_METER		0
+#define OHM_METER		1
+#define BUZZER_TONE		100
+#define WELCOME_TIME	500
 
-#define RES_220_PORT		DIO_u8PORTA
-#define RES_1K_PORT         DIO_u8PORTA
-#define RES_10K_PORT        DIO_u8PORTA
+#define RES_10_PORT			DIO_u8PORTB
+#define RES_10K_PORT        DIO_u8PORTB
+#define RES_10M_PORT        DIO_u8PORTB
+#define RES_330_PORT		DIO_u8PORTB
 
-#define RES_220_PIN			DIO_u8PIN0
-#define RES_1K_PIN          DIO_u8PIN1
-#define RES_10K_PIN         DIO_u8PIN2
+#define RES_10_PIN			DIO_u8PIN3
+#define RES_10K_PIN         DIO_u8PIN4
+#define RES_10M_PIN         DIO_u8PIN5
+#define RES_330_PIN         DIO_u8PIN6
 
 
-#define CAPACITANCE_VOLTAGE_PIN			DIO_u8PIN3
+#define CAPACITANCE_VOLTAGE_PIN			DIO_u8PIN0
 
 
 #define CAPCITANCE_VALUE_63_PERCANTAGE		646

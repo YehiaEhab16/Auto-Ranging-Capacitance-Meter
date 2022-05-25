@@ -20,7 +20,7 @@
  * 			4-RISING_EDGE
  */
 #define EXTI_INT0_SENSE		FALLING_EDGE
-#define EXTI_INT1_SENSE		FALLING_EDGE
+#define EXTI_INT1_SENSE		ON_CHANGE
 #define EXTI_INT2_SENSE		FALLING_EDGE
 
 /*Choose INT0 peripheral interrupt enable state

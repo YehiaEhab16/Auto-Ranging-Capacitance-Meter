@@ -19,160 +19,82 @@
 #include "../../2-HAL/3-SW/SW_interface.h"
 #include "../../2-HAL/4-BUZZ/BUZZ_interface.h"
 
+#include <util/delay.h>
+
 #include "Cap.h"
 
-void ChargeTime (void);
+void ChargeTime(void);
+void ChangeMeter(void);
 
-u32 Global_ChargeCounter =0  ;
+u8 Global_u8StateRange =  RES_10, Global_u8MeterFlag=CAP_METER, Global_u8BuzzerFlag=0;
+u32 Global_u32ChargeCounter = 0;
 
-Timer_t ChargeCounter = {NORMAL, DIVIDE_BY_1, NORMAL};
+Timer_t Global_Timer_tChargeCounter = {NORMAL, DIVIDE_BY_1, NORMAL};
+LED_t Global_LED_tExternal = {LED_PORTB, LED_PIN0, LED_u8ACTIVE_HIGH};
+LED_t Global_LED_tInternal = {LED_PORTB, LED_PIN1, LED_u8ACTIVE_HIGH};
 
-u8 Global_u8StateRange =  RES_220;
 void main (void)
 {
-	u16 Local_u32ReadAnalog = 0 ;
-	u32 Local_u32TimeRead =0 ;
-	u32 Local_u32Capacity =0 ;
 	u8 Local_u8Unit = Farad;
+	u16 Local_u16ReadAnalog = 0;
+	u32 Local_u32TimeRead = 0;
+	u32 Local_u32Capacity = 0;
 
 	PORT_voidInit();
 	CLCD_voidInit();
 
 	ADC_voidInit();
 
-	Timer1_voidInit(&ChargeCounter);
-	Timer_u8SetCallback(TIMER1_PRELOAD, &ChargeTime);
+	Timer0_voidInit(&Global_Timer_tChargeCounter);
+	Timer_u8SetCallback(TIMER0_PRELOAD, &ChargeTime);
+
+	//EXTI_u8EnableInterrupt(EXTI_INT1);
+	//EXTI_u8SetCallBack(&ChangeMeter,EXTI_INT1);
 
 	GIE_voidEnableGlobal();
 
-	CLCD_voidSendString("Welcome To Capacitance Meter");
+	LED_voidLedOff(&Global_LED_tExternal);
+	LED_voidLedOn(&Global_LED_tInternal);
 
+	CLCD_voidSendString("Welcome To Capacitance and Ohm Meter");
+	_delay_ms(WELCOME_TIME);
 
+	LED_voidLedOn(&Global_LED_tExternal);
+	LED_voidLedOff(&Global_LED_tInternal);
 
 	while (1)
 	{
-		if (Global_u8StateRange == RES_220)
+		if(Global_u8BuzzerFlag==1)
 		{
-			PORT_u8ModifyPin(RES_220_PORT,RES_220_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_220_PORT,RES_220_PIN,DIO_u8PIN_HIGH);
-
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
-
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
-			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
-
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
-
-			if (Local_u32TimeRead < 1000)
-			{
-				DIO_u8SetPinValue(RES_220_PORT,RES_220_PIN,DIO_u8PIN_LOW);
-				delay(10);
-
-				PORT_u8ModifyPin(RES_220_PORT,RES_220_PIN,INPUT);
-
-				Global_u8StateRange = RES_1K ;
-			}
-			else
-			{
-				Local_u32Capacity = Local_u32TimeRead / 220 ;
-				Local_u8Unit = Farad ;
-				//Display Capacitance and unit
-
-
-			}
-
+			BUZZ_voidBuzzerOn();
+			_delay_ms(BUZZER_TONE);
+			BUZZ_voidBuzzerOff();
+			Global_u8BuzzerFlag=0;
 		}
-		else if (Global_u8StateRange == RES_1K)
+		if(Global_u8MeterFlag==CAP_METER)
 		{
-			PORT_u8ModifyPin(RES_1K_PORT,RES_1K_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_1K_PORT,RES_1K_PIN,DIO_u8PIN_HIGH);
-
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
-
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
-			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
-
-
-			if (Local_u32TimeRead < 500)
-			{
-
-				DIO_u8SetPinValue(RES_1K_PORT,RES_1K_PIN,DIO_u8PIN_LOW);
-				delay(10);
-
-				PORT_u8ModifyPin(RES_1K_PORT,RES_1K_PIN,INPUT);
-
-				Global_u8StateRange = RES_10K ;
-
-
-			}
-			else
-			{
-				Local_u32Capacity = Local_u32TimeRead / 1000 ;
-
-				Local_u8Unit = MileFarad ;
-
-				Global_u8StateRange = RES_220;
-				//Display Capacitance and unit
-
-
-			}
-
-		}
-		else if (Global_u8StateRange == RES_10K)
-		{
-			PORT_u8ModifyPin(RES_10K_PORT,RES_10K_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_10K_PORT,RES_10K_PIN,DIO_u8PIN_HIGH);
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
-
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
-			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
-
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
-
-			if (Local_u32TimeRead < 250)
-			{
-				//nothing can not measure this range
-			}
-			else
-			{
-				Local_u32Capacity = Local_u32TimeRead / 10000 ;
-
-				Local_u8Unit = MicroFarad ;
-				Global_u8StateRange = RES_220;
-
-				//Display Capacitance and unit
-
-			}
-
+			CLCD_voidSendString("  Capacitance  ");
+			CLCD_voidGotoXY(0,1);
+			CLCD_voidSendString("Cap:");
 		}
 		else
 		{
-
-			//nothing
+			CLCD_voidSendString("     Ohm     ");
+			CLCD_voidGotoXY(0,1);
+			CLCD_voidSendString("Res:");
 		}
-
 
 	}
 
 }
 void ChargeTime (void)
 {
-	Global_ChargeCounter++;
+	Global_u32ChargeCounter++;
+}
 
+void ChangeMeter(void)
+{
+	CLCD_voidClearDisplay();
+	Global_u8BuzzerFlag = 1;
+	Global_u8MeterFlag = !Global_u8MeterFlag;
 }

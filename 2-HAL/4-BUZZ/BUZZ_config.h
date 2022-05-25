@@ -13,9 +13,9 @@
 #define BUZZ_CONFIG_H_
 
 
-#define BUZZ_PORT		DIO_u8PORTA
+#define BUZZ_PORT		DIO_u8PORTB
 
-#define BUZZ_PIN		DIO_u8PIN0
+#define BUZZ_PIN		DIO_u8PIN2
 
 
 #endif
