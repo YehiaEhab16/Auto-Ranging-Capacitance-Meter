@@ -1,3 +1,6 @@
+
+
+
 /*******************************************************/
 /************		T20: Capacitance Meter	************/
 /************		Version: 1.00	 		************/
@@ -5,12 +8,12 @@
 /*******************************************************/
 /*******************************************************/
 
+#include <util/delay.h>
 #include "../../5-LIB/STD_TYPES.h"
 #include "../../5-LIB/BIT_MATH.h"
 #include "../../1-MCAL/2-PORT/PORT_interface.h"
 #include "../../1-MCAL/1-DIO/DIO_interface.h"
 #include "../../1-MCAL/3-EXTI/EXTI_interface.h"
-#include "../../1-MCAL/6-TIMERS/TIMERS_interface.h"
 #include "../../1-MCAL/5-ADC/ADC_interface.h"
 #include "../../1-MCAL/4-GIE/GIE_interface.h"
 
@@ -21,158 +24,235 @@
 
 #include "Cap.h"
 
-void ChargeTime (void);
+u16 mapping(u16 Copy_u16InputNumber, u16 Copy_u16InputMinimum, u16 Copy_u16InputMaximum, u16 Copy_u16OutputMinimum, u16 Copy_u16OutputMaximum);
 
-u32 Global_ChargeCounter =0  ;
-
-Timer_t ChargeCounter = {NORMAL, DIVIDE_BY_1, NORMAL};
-
-u8 Global_u8StateRange =  RES_220;
-void main (void)
+u8 Globl_u8State = RES_1000ohm ;
+void main(void)
 {
-	u16 Local_u32ReadAnalog = 0 ;
-	u32 Local_u32TimeRead =0 ;
-	u32 Local_u32Capacity =0 ;
-	u8 Local_u8Unit = Farad;
+
+
+	u16 Local_u16Analog, Local_u16Voltage;
+	f32 Local_f32Resistance ;
 
 	PORT_voidInit();
+	ADC_voidInit();
 	CLCD_voidInit();
 
-	ADC_voidInit();
 
-	Timer1_voidInit(&ChargeCounter);
-	Timer_u8SetCallback(TIMER1_PRELOAD, &ChargeTime);
-
-	GIE_voidEnableGlobal();
-
-	CLCD_voidSendString("Welcome To Capacitance Meter");
-
-
-
-	while (1)
+	while(1)
 	{
-		if (Global_u8StateRange == RES_220)
+
+		ADC_u8StartConversionSynch(5,&Local_u16Analog);
+		Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+		if (Local_u16Voltage == 5000)
 		{
-			PORT_u8ModifyPin(RES_220_PORT,RES_220_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_220_PORT,RES_220_PIN,DIO_u8PIN_HIGH);
 
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
-
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
-			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
-
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
-
-			if (Local_u32TimeRead < 1000)
-			{
-				DIO_u8SetPinValue(RES_220_PORT,RES_220_PIN,DIO_u8PIN_LOW);
-				delay(10);
-
-				PORT_u8ModifyPin(RES_220_PORT,RES_220_PIN,INPUT);
-
-				Global_u8StateRange = RES_1K ;
-			}
-			else
-			{
-				Local_u32Capacity = Local_u32TimeRead / 220 ;
-				Local_u8Unit = Farad ;
-				//Display Capacitance and unit
-
-
-			}
-
+			CLCD_voidClearDisplay();
+			CLCD_voidSendString("No Connection");
 		}
-		else if (Global_u8StateRange == RES_1K)
+
+		else if (Globl_u8State == RES_50ohm)
 		{
-			PORT_u8ModifyPin(RES_1K_PORT,RES_1K_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_1K_PORT,RES_1K_PIN,DIO_u8PIN_HIGH);
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
 
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 50UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
 
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
-			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
-
-
-			if (Local_u32TimeRead < 500)
+			if (Local_u16Voltage>=100 && Local_u16Voltage<=3322 )
 			{
 
-				DIO_u8SetPinValue(RES_1K_PORT,RES_1K_PIN,DIO_u8PIN_LOW);
-				delay(10);
-
-				PORT_u8ModifyPin(RES_1K_PORT,RES_1K_PIN,INPUT);
-
-				Global_u8StateRange = RES_10K ;
-
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)Local_f32Resistance);
+				CLCD_voidSendString("   Ohm");
 
 			}
 			else
 			{
-				Local_u32Capacity = Local_u32TimeRead / 1000 ;
-
-				Local_u8Unit = MileFarad ;
-
-				Global_u8StateRange = RES_220;
-				//Display Capacitance and unit
-
-
+				Globl_u8State = RES_100ohm;
 			}
+			_delay_ms(100);
 
 		}
-		else if (Global_u8StateRange == RES_10K)
+
+		else if (Globl_u8State == RES_100ohm)
 		{
-			PORT_u8ModifyPin(RES_10K_PORT,RES_10K_PIN,OUTPUT);
-			DIO_u8SetPinValue(RES_10K_PORT,RES_10K_PIN,DIO_u8PIN_HIGH);
-			Global_ChargeCounter = 0 ;
-			Timer_voidSetTimerValue (TIMER1_PRELOAD, 0 );
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
 
-			ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 100UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
 
-			while (Local_u32ReadAnalog <CAPCITANCE_VALUE_63_PERCANTAGE)
+			if (Local_u16Voltage>=2450 && Local_u16Voltage<4500 )
 			{
-				ADC_u8StartConversionSynch(CAPACITANCE_VOLTAGE_PIN, &Local_u32ReadAnalog);
-			}
 
-			Local_u32TimeRead = Timer_u16ReadTimerValue(TIMER1)+ Global_ChargeCounter*65536;
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)Local_f32Resistance);
+				CLCD_voidSendString("  Ohm");
 
-			if (Local_u32TimeRead < 250)
-			{
-				//nothing can not measure this range
 			}
 			else
 			{
-				Local_u32Capacity = Local_u32TimeRead / 10000 ;
+				Globl_u8State = RES_1000ohm;
+			}
+			_delay_ms(100);
 
-				Local_u8Unit = MicroFarad ;
-				Global_u8StateRange = RES_220;
+		}
 
-				//Display Capacitance and unit
+		else if (Globl_u8State == RES_1000ohm)
+		{
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 1000UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<4500 )
+			{
+
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u32)(Local_f32Resistance/950));
+				CLCD_voidSendString("  KOhm");
 
 			}
+			else
+			{
+				Globl_u8State = RES_10kohm;
+			}
+			_delay_ms(100);
 
 		}
-		else
+		else if (Globl_u8State == RES_10kohm)
+		{
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 10000UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
+
+
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<4500 )
+			{
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)(Local_f32Resistance/1000));
+				CLCD_voidSendString("   kOhm");
+
+			}
+			else
+			{
+				Globl_u8State = RES_100kohm;
+			}
+			_delay_ms(100);
+
+		}
+		else if (Globl_u8State == RES_100kohm)
+		{
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 100000UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<4500 )
+			{
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber(Local_f32Resistance/1000);
+				CLCD_voidSendString("  kOhm");
+
+			}
+			else
+			{
+				Globl_u8State = RES_1Mohm;
+			}
+			_delay_ms(100);
+
+
+		}
+		else if (Globl_u8State == RES_1Mohm)
 		{
 
-			//nothing
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 1000000UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<4167 )
+			{
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)(Local_f32Resistance/1000000));
+				CLCD_voidSendString("   MOhm");
+
+			}
+			else
+			{
+				Globl_u8State = RES_5Mohm;
+			}
+			_delay_ms(100);
+
+		}
+		else if (Globl_u8State == RES_5Mohm)
+		{
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((Local_u16Voltage * 5000000UL) / ( 5000UL-(u32)Local_u16Voltage)) ;
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<3333 )
+			{
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)(Local_f32Resistance/1000000));
+				CLCD_voidSendString("   MOhm");
+
+			}
+			else
+			{
+				Globl_u8State = RES_10Mohm;
+			}
+			_delay_ms(100);
+
+		}
+		else if (Globl_u8State == RES_10Mohm)
+		{
+			ADC_u8StartConversionSynch(5,&Local_u16Analog);
+			Local_u16Voltage = mapping(Local_u16Analog, 0 , 255, 0, 5000);
+
+			Local_f32Resistance = ((f32)(Local_u16Voltage * 10000000UL) / (f32)( 5000UL-(u32)Local_u16Voltage)) ;
+
+			if (Local_u16Voltage>=2400 && Local_u16Voltage<1666 )
+			{
+
+				CLCD_voidClearDisplay();
+				CLCD_voidSendString("Res:");
+				CLCD_voidSendNumber((u16)(Local_f32Resistance/1000000));
+				CLCD_voidSendString("   MOhm");
+
+			}
+			else
+			{
+				//nothing
+			}
+			_delay_ms(100);
+
 		}
 
 
+		_delay_ms(50);
 	}
-
 }
-void ChargeTime (void)
+
+u16 mapping(u16 Copy_u16InputNumber, u16 Copy_u16InputMinimum, u16 Copy_u16InputMaximum, u16 Copy_u16OutputMinimum, u16 Copy_u16OutputMaximum)
 {
-	Global_ChargeCounter++;
+	u16 Local_u16OutputNumber = (((f32)(Copy_u16OutputMaximum - Copy_u16OutputMinimum) / (f32)(Copy_u16InputMaximum - Copy_u16InputMinimum))*(f32)(Copy_u16InputNumber - Copy_u16InputMinimum)) + Copy_u16OutputMinimum;
 
+	return Local_u16OutputNumber;
 }
+
