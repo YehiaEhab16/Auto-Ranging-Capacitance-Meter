@@ -8,9 +8,15 @@ enum Range
 {
 	RES_10,
 	RES_10K,
-	RES_10M
-
-
+	RES_10M,
+	RES_50ohm,
+	RES_100ohm,
+	RES_1000ohm,
+	RES_10kohm,
+	RES_100kohm,
+	RES_1Mohm,
+	RES_5Mohm,
+	RES_10Mohm
 };
 
 enum Unit
@@ -24,6 +30,8 @@ enum Unit
 
 #define CAP_METER		0
 #define OHM_METER		1
+#define DISP			0
+#define NO_DISP			1
 #define BUZZER_TONE		100
 #define WELCOME_TIME	500
 
